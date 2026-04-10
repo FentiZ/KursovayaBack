@@ -57,5 +57,20 @@ public class AppDbContext : DbContext
             .HasOne(c => c.Class)
             .WithMany()
             .HasForeignKey(c => c.ClassId);
+       
+        modelBuilder.Entity<Subject>().HasData(
+
+        new Subject { Id = 1, Name = "Math" },
+        new Subject { Id = 2, Name = "German" },
+        new Subject { Id = 3, Name = "English" },
+        new Subject { Id = 4, Name = "Physics" },
+        new Subject { Id = 5, Name = "Chemistry" },
+        new Subject { Id = 6, Name = "Biology" },
+        new Subject { Id = 7, Name = "History" },
+        new Subject { Id = 8, Name = "Geography" },
+        new Subject { Id = 9, Name = "Informatics" },
+        new Subject { Id = 10, Name = "Sports" }
+            );
     }
+
 }

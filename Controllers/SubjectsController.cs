@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class SubjectsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -12,7 +14,7 @@ public class SubjectsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult Get()
+    public IActionResult GetAll()
     {
         return Ok(_context.Subjects.ToList());
     }

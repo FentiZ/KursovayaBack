@@ -15,11 +15,17 @@ public class CoursesController : ControllerBase
         _context = context;
     }
 
+    //CREATE COURSE
     [HttpPost]
     [Authorize(Roles = "Teacher")]
     public IActionResult Create(CreateCourseDto dto)
     {
-        var teacherId = int.Parse(User.FindFirst("nameid").Value);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+            return Unauthorized("No userId");
+
+        var teacherId = int.Parse(userIdClaim.Value);
 
         var teacher = _context.Users.Find(teacherId);
         var subject = _context.Subjects.Find(dto.SubjectId);
@@ -28,12 +34,13 @@ public class CoursesController : ControllerBase
         if (teacher == null || subject == null || cls == null)
             return BadRequest("Invalid data");
 
-        // Генерация названия
+        //Генерация названия курса
         var year = DateTime.Now.Year;
         var courseName = $"{year} {cls.Name} {teacher.Nickname} {subject.Name}";
 
         var course = new Course
         {
+            Name = courseName, //сохраняем
             SubjectId = dto.SubjectId,
             TeacherId = teacherId,
             ClassId = dto.ClassId,
@@ -43,39 +50,56 @@ public class CoursesController : ControllerBase
         _context.Courses.Add(course);
         _context.SaveChanges();
 
-        return Ok(new { course, name = courseName });
+        return Ok(course);
     }
 
+    //ALL COURSES
     [HttpGet]
     public IActionResult GetAll()
     {
-        return Ok(_context.Courses.ToList());
+        var courses = _context.Courses
+            .Include(c => c.Subject)
+            .Include(c => c.Class)
+            .Include(c => c.Teacher)
+            .ToList();
+
+        return Ok(courses);
     }
 
-    // Get courses for student
+    //MY COURSES (student)
     [HttpGet("my")]
     public IActionResult GetMyCourses()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-        if (userIdClaim == null)
-            return Unauthorized("No userId");
-
-        var userId = int.Parse(userIdClaim.Value);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         var user = _context.Users.Find(userId);
 
         if (user == null)
             return NotFound("User not found");
 
-        if (user.ClassId == null)
-            return BadRequest("User has no class");
+        // TEACHER
+        if (user.Role == "Teacher")
+        {
+            var courses = _context.Courses
+                .Include(c => c.Subject)
+                .Include(c => c.Class)
+                .Include(c => c.Teacher)
+                .Where(c => c.TeacherId == userId)
+                .ToList();
 
-        var courses = _context.Courses
+            return Ok(courses);
+        }
+
+        // STUDENT
+        if (user.ClassId == null)
+            return BadRequest(new { message = "User has no class" });
+
+        var studentCourses = _context.Courses
             .Include(c => c.Subject)
+            .Include(c => c.Class)
             .Where(c => c.ClassId == user.ClassId)
             .ToList();
 
-        return Ok(courses);
+        return Ok(studentCourses);
     }
 }

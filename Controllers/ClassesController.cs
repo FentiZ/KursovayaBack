@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+
 public class ClassesController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -14,6 +14,7 @@ public class ClassesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public IActionResult Create(CreateClassDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
@@ -39,6 +40,7 @@ public class ClassesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Teacher")]
     public IActionResult GetAll()
     {
         return Ok(_context.Classes.ToList());
