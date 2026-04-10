@@ -1,0 +1,46 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
+public class ClassesController : ControllerBase
+{
+    private readonly AppDbContext _context;
+
+    public ClassesController(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    [HttpPost]
+    public IActionResult Create(CreateClassDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            return BadRequest("Name required");
+
+        var name = dto.Name.ToUpper();
+
+        var isNormal = System.Text.RegularExpressions.Regex.IsMatch(name, @"^\d{1,2}[A-Z]$"); // 10A
+        var isSpecial = name == "EF" || name == "Q1" || name == "Q2";
+
+        if (!isNormal && !isSpecial)
+            return BadRequest("Invalid class format");
+
+        var cls = new Class
+        {
+            Name = name
+        };
+
+        _context.Classes.Add(cls);
+        _context.SaveChanges();
+
+        return Ok(cls);
+    }
+
+    [HttpGet]
+    public IActionResult GetAll()
+    {
+        return Ok(_context.Classes.ToList());
+    }
+}
