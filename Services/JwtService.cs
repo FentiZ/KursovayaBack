@@ -21,11 +21,11 @@ public class JwtService
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Login),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+{
+        new Claim("id", user.Id.ToString()),
+        new Claim(ClaimTypes.Role, user.Role),
+        new Claim("nickname", user.Nickname ?? "")
+};
 
         var token = new JwtSecurityToken(
             claims: claims,

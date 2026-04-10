@@ -66,33 +66,37 @@ public class CoursesController : ControllerBase
         return Ok(courses);
     }
 
-    //MY COURSES (student)
+    //MY COURSES
     [HttpGet("my")]
     public IActionResult GetMyCourses()
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userIdClaim = User.FindFirst("id");
+
+        if (userIdClaim == null)
+            return Unauthorized("Invalid token");
+
+        var userId = int.Parse(userIdClaim.Value);
 
         var user = _context.Users.Find(userId);
 
         if (user == null)
             return NotFound("User not found");
 
-        // TEACHER
+        // Teacher
         if (user.Role == "Teacher")
         {
             var courses = _context.Courses
                 .Include(c => c.Subject)
                 .Include(c => c.Class)
-                .Include(c => c.Teacher)
                 .Where(c => c.TeacherId == userId)
                 .ToList();
 
             return Ok(courses);
         }
 
-        // STUDENT
+        // Student
         if (user.ClassId == null)
-            return BadRequest(new { message = "User has no class" });
+            return BadRequest("User has no class");
 
         var studentCourses = _context.Courses
             .Include(c => c.Subject)
