@@ -70,7 +70,7 @@ public class CoursesController : ControllerBase
     [HttpGet("my")]
     public IActionResult GetMyCourses()
     {
-        var userIdClaim = User.FindFirst("id");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
         if (userIdClaim == null)
             return Unauthorized("Invalid token");

@@ -45,4 +45,20 @@ public class ClassesController : ControllerBase
     {
         return Ok(_context.Classes.ToList());
     }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult Delete(int id)
+    {
+        var cls = _context.Classes.Find(id);
+
+        if (cls == null)
+            return NotFound();
+
+        _context.Classes.Remove(cls);
+        _context.SaveChanges();
+
+        return Ok();
+    }
 }
+
